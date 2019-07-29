@@ -7,12 +7,21 @@
       :src="formattedFile.url"
     >
     <div class="path" v-else :title="formattedFile.path">{{ formattedFile.path }}</div>
-    <slot/>
+
+    <div class="actions flex-box">
+      <i
+        v-if="isImage || disableView"
+        class="el-icon-view view"
+        @click="onPreview"
+      />
+      <slot :file="formattedFile"/>
+    </div>
   </div>
 </template>
 
 <script>
 import { isImage } from '@/libs/validates'
+import { mapState } from 'vuex'
 
 export default {
   name: 'FilePreview',
@@ -23,6 +32,8 @@ export default {
   },
   props: {
     file: null,
+    disableView: Boolean,
+    ...mapState(['miniWidth']),
   },
   computed: {
     isImage() {
@@ -55,6 +66,22 @@ export default {
         }
       }
     },
+    onPreview() {
+      if (!this.isImage) {
+        return
+      }
+
+      this.$msgbox({
+        message: this.$createElement('img', {
+          domProps: {
+            src: this.formattedFile.url,
+          },
+        }),
+        showConfirmButton: false,
+        callback: () => {}, // 避免取消的时候，控制台显示一个 reject 错误
+        customClass: `image-preview-dialog${this.miniWidth ? ' mini-width' : ''}`,
+      })
+    },
   },
   watch: {
     file: {
@@ -80,6 +107,13 @@ export default {
   border-radius: $--border-radius-base;
   margin: 0 5px 5px 0;
   transition: all .3s;
+  position: relative;
+
+  &:hover {
+    .actions {
+      opacity: 1;
+    }
+  }
 }
 
 img {
@@ -95,5 +129,57 @@ img {
   font-size: 12px;
   word-break: break-all;
   line-height: initial;
+}
+
+.actions {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.3);
+  transition: all .3s;
+
+  i {
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .view {
+    color: $--color-primary;
+  }
+}
+</style>
+
+<style lang="scss">
+.image-preview-dialog {
+  max-width: 1000px;
+  max-height: 1000px;
+  width: auto;
+  height: auto;
+  padding: 0;
+
+  &.mini-width {
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  .el-message-box__content {
+    padding: 0;
+  }
+
+  .el-message-box__btns {
+    display: none;
+  }
+
+  .el-message-box__message {
+    font-size: 0;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  }
 }
 </style>
