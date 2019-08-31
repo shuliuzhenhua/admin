@@ -11,7 +11,7 @@ import {
 import _forIn from 'lodash/forIn'
 
 let config = {
-  baseURL: '/admin-api',
+  baseURL: process.env.NODE_ENV === 'development' ? 'http://admin.test/admin-api' : '/admin-api',
   timeout: 30 * 1000,
 }
 
